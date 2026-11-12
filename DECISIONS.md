@@ -46,3 +46,13 @@ Order 5 -> 6 -> 7; milestone 6's long runs go in the background while 7 is built
 - `flydrive/lesion.py` accepts `ids:1;2;3` (explicit neuron indices).
 - M6 code done: `train_rl.py --camera --looming {blob,flow}` saves `rl_*_cam_<looming>.npz`;
   `run.py --rl-cam` loads them; threshold tuning uses the same camera eyes.
+
+## Milestone 7 notes (2026-11-12)
+- `make_showcase.py find|build` records frames headlessly (SDL dummy driver) and builds
+  `docs/demo.gif`, three social images, and `showcase/lesion-vs-intact.mp4` (git-ignored).
+- Fedora's ffmpeg has no libx264: the MP4 uses libopenh264 (H.264, accepted by LinkedIn).
+- Clip: seed 2, hand-tuned fly brain, intact vs the 10 escape neurons silenced (the lesioned car
+  crashes at 5.0 s, the intact one dodges). The square card says "hand-tuned car crashes" and
+  notes that the RL car doesn't, so it doesn't overclaim.
+- GitHub social preview (`docs/social-preview.png`, 1280x640) must be uploaded by hand
+  (repo Settings -> Social preview); there is no API for it.

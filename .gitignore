@@ -7,3 +7,4 @@ models/rl_data/
 godot_world/godot.log
 godot_world/.godot/
 !docs/*.png
+showcase/

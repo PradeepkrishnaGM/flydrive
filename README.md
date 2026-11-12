@@ -28,6 +28,8 @@ obstacles, several at once and roadside clutter (`--difficulty hard`), where the
 first fails badly and then, with its signals compressed, comes out slightly ahead of plain
 eyes: see [The hard world](#the-hard-world-does-the-connectome-earn-its-keep).
 
+![The car brakes and dodges while the fly's escape neurons fire](docs/demo.gif)
+
 | Normal world | Hard world (several obstacles, clutter) |
 |---|---|
 | ![Normal world: the car dodges a box](docs/normal-world.png) | ![Hard world: several obstacles at once](docs/hard-world.png) |
