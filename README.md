@@ -461,6 +461,62 @@ is noisy: the same full-feature fly policy scored 72 and 80 with two reasonable 
 the eyes-only one 45 and 52. Read gaps under about 8 collisions as noise; 80 vs 43 is far
 outside it, 43 vs 48 is not.
 
+## Lesion experiment: which neurons does the car need?
+
+The car's reflexes run on the real connectome, so we can damage it and see what breaks.
+`--lesion` silences neurons (they can never spike, so they send nothing downstream):
+
+```bash
+python run.py --reflex fly --lesion gf_left,gf_right     # silence the Giant Fiber
+python run.py --reflex rl  --lesion LC4@left             # one cell type, one side
+python run.py --reflex fly --lesion random:10:1          # 10 random neurons (a control)
+python run_lesions.py                                    # the whole experiment (~30 min on 6 cores)
+```
+
+Each lesion drives the same 3 obstacle layouts for 60 s (29 obstacles, world geometry as the
+eyes) with two reflexes. The reflex is built on the intact brain and the lesion applied
+afterwards, so it can't re-learn its wiring. As a control, random neurons (10 and 162, five
+draws each, never taken from the looming or escape groups) are silenced the same way.
+
+![Collisions per lesion](docs/lesion.png)
+
+| Lesion | Hand-tuned fly brain | Learned (RL) fly brain |
+|---|---|---|
+| none | 6/29 collisions | 0/29 |
+| Giant Fiber (2 neurons) | **0/29** | 1/29 |
+| other escape DNs (8) | **21/29** | 0/29 |
+| all escape outputs (10) | **27/29** | 0/29 |
+| LPLC2 looming neurons | 4/29 | **9/29** |
+| LC4 looming neurons | 7/29 | **5/29** |
+| left eye's looming neurons (162) | 11/29 | **9/29** |
+| random 10 / random 162 (5 draws each) | 6.0 / 6.2 (range 6-7) | 0 / 0 |
+
+Inside the brain (spikes in 300 ms with the left eye driven at 60 Hz): silencing LPLC2 cuts the
+Giant Fiber from 77 to 33 spikes but leaves the escape DNs alone (117 to 116); silencing LC4
+does the opposite (escape DNs 117 to 37, Giant Fiber 77 to 68). In this model the two looming
+cell types feed different escape pathways.
+
+**What it shows**
+
+- **The hand-tuned car depends on the escape DNs, not the Giant Fiber.** Silencing the 8 escape
+  DNs leaves it nearly defenceless (21/29), because that is where its dodge direction comes
+  from. Silencing the Giant Fiber, which drives its braking, did not hurt: it crashed *less*
+  (0/29 vs 6/29) while staying at full speed. I haven't tested why; one guess is that braking
+  keeps the car near crossing obstacles for longer.
+- **The learned car does not need the escape neurons at all.** It reads all 1,299 descending
+  neurons, so with all 10 escape neurons silenced it still avoids everything. What it needs is
+  the signal arriving from the eyes: silencing either looming cell type, or one eye, makes it
+  crash. So the policy found routes through the connectome that the textbook escape circuit
+  doesn't include.
+- **The effects are specific.** Silencing 10 or 162 random neurons changes nothing (6.0 and 6.2
+  collisions vs 6 for the intact brain, and 0 vs 0 for the learned one).
+
+**Caveats.** 29 obstacles over 3 layouts, one noise seed per layout: differences of 1-3
+collisions (for example 6 vs 4 vs 7) are within noise, and only the large effects (27, 21, 9
+collisions against 0-6) should be trusted. The reflexes and the learned policy are trained on
+the intact brain, so this measures what the *current* wiring relies on, not what a fly would
+re-learn after damage. Results are in `docs/lesion_results.csv`.
+
 ## Performance
 
 The simulation is locked to simulated time, so results don't depend on your CPU. On a slow CPU
@@ -505,6 +561,8 @@ models/           trained readouts and RL policies (readout_*.npz, rl_*.npz)
 - **Compare flies:** swap in Google's male fly connectome (MaleCNS) and see whether its reflexes differ.
 - **Retrain through the camera:** `train_rl.py --camera` practises with pixel looming instead
   of exact geometry, so the policy learns around the camera's blind spots.
+- **Find the important interneurons:** rank the neurons between the eyes and the escape neurons
+  by activity, lesion the top ones, and see which single cells the reflex depends on.
 - **Mask-free optic flow:** `--looming flow` still uses the pixel classifier to pick regions.
   Subtracting the expected ground flow (flat road, known camera height) would remove that.
 

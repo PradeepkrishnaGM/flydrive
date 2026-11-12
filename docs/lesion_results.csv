@@ -1,0 +1,103 @@
+condition,group,spec,reflex,seed,collisions,obstacles,distance
+Giant Fiber (2),output,"gf_left,gf_right",fly,1,0,9,720.0
+Giant Fiber (2),output,"gf_left,gf_right",fly,2,0,9,720.0
+Giant Fiber (2),output,"gf_left,gf_right",fly,3,0,11,720.0
+LC4 neurons,input,LC4,fly,1,2,9,507.0
+LC4 neurons,input,LC4,fly,2,2,9,509.7
+LC4 neurons,input,LC4,fly,3,3,11,466.3
+LPLC2 neurons,input,LPLC2,fly,1,1,9,564.5
+LPLC2 neurons,input,LPLC2,fly,2,0,9,577.8
+LPLC2 neurons,input,LPLC2,fly,3,3,11,529.8
+all escape outputs (10),output,"gf_left,gf_right,esc_left,esc_right",fly,1,8,9,720.0
+all escape outputs (10),output,"gf_left,gf_right,esc_left,esc_right",fly,2,9,9,720.0
+all escape outputs (10),output,"gf_left,gf_right,esc_left,esc_right",fly,3,10,11,720.0
+left-eye looming (162),input,loom_left,fly,1,2,9,567.8
+left-eye looming (162),input,loom_left,fly,2,6,9,563.9
+left-eye looming (162),input,loom_left,fly,3,3,11,490.6
+no lesion,baseline,,fly,1,2,9,508.5
+no lesion,baseline,,fly,2,2,9,515.2
+no lesion,baseline,,fly,3,2,11,483.7
+other escape DNs (8),output,"esc_left,esc_right",fly,1,7,9,490.0
+other escape DNs (8),output,"esc_left,esc_right",fly,2,7,9,487.5
+other escape DNs (8),output,"esc_left,esc_right",fly,3,7,11,451.5
+random 10 (draw 1),control10,random:10:1,fly,1,2,9,508.5
+random 10 (draw 1),control10,random:10:1,fly,2,2,9,515.2
+random 10 (draw 1),control10,random:10:1,fly,3,2,11,483.7
+random 10 (draw 2),control10,random:10:2,fly,1,2,9,508.5
+random 10 (draw 2),control10,random:10:2,fly,2,2,9,515.2
+random 10 (draw 2),control10,random:10:2,fly,3,2,11,483.7
+random 10 (draw 3),control10,random:10:3,fly,1,2,9,508.5
+random 10 (draw 3),control10,random:10:3,fly,2,2,9,515.2
+random 10 (draw 3),control10,random:10:3,fly,3,2,11,483.7
+random 10 (draw 4),control10,random:10:4,fly,1,2,9,508.5
+random 10 (draw 4),control10,random:10:4,fly,2,2,9,515.2
+random 10 (draw 4),control10,random:10:4,fly,3,2,11,483.7
+random 10 (draw 5),control10,random:10:5,fly,1,2,9,508.5
+random 10 (draw 5),control10,random:10:5,fly,2,2,9,515.2
+random 10 (draw 5),control10,random:10:5,fly,3,2,11,483.7
+random 162 (draw 1),control162,random:162:1,fly,1,2,9,508.5
+random 162 (draw 1),control162,random:162:1,fly,2,2,9,514.2
+random 162 (draw 1),control162,random:162:1,fly,3,2,11,484.0
+random 162 (draw 2),control162,random:162:2,fly,1,2,9,509.3
+random 162 (draw 2),control162,random:162:2,fly,2,2,9,513.9
+random 162 (draw 2),control162,random:162:2,fly,3,2,11,483.2
+random 162 (draw 3),control162,random:162:3,fly,1,2,9,508.5
+random 162 (draw 3),control162,random:162:3,fly,2,2,9,515.2
+random 162 (draw 3),control162,random:162:3,fly,3,2,11,484.2
+random 162 (draw 4),control162,random:162:4,fly,1,2,9,508.3
+random 162 (draw 4),control162,random:162:4,fly,2,2,9,512.1
+random 162 (draw 4),control162,random:162:4,fly,3,3,11,462.8
+random 162 (draw 5),control162,random:162:5,fly,1,2,9,508.5
+random 162 (draw 5),control162,random:162:5,fly,2,2,9,515.2
+random 162 (draw 5),control162,random:162:5,fly,3,2,11,483.7
+Giant Fiber (2),output,"gf_left,gf_right",rl,1,0,9,720.0
+Giant Fiber (2),output,"gf_left,gf_right",rl,2,0,9,720.0
+Giant Fiber (2),output,"gf_left,gf_right",rl,3,1,11,720.0
+LC4 neurons,input,LC4,rl,1,2,9,720.0
+LC4 neurons,input,LC4,rl,2,1,9,720.0
+LC4 neurons,input,LC4,rl,3,2,11,720.0
+LPLC2 neurons,input,LPLC2,rl,1,2,9,720.0
+LPLC2 neurons,input,LPLC2,rl,2,3,9,720.0
+LPLC2 neurons,input,LPLC2,rl,3,4,11,720.0
+all escape outputs (10),output,"gf_left,gf_right,esc_left,esc_right",rl,1,0,9,720.0
+all escape outputs (10),output,"gf_left,gf_right,esc_left,esc_right",rl,2,0,9,720.0
+all escape outputs (10),output,"gf_left,gf_right,esc_left,esc_right",rl,3,0,11,720.0
+left-eye looming (162),input,loom_left,rl,1,3,9,720.0
+left-eye looming (162),input,loom_left,rl,2,3,9,720.0
+left-eye looming (162),input,loom_left,rl,3,3,11,720.0
+no lesion,baseline,,rl,1,0,9,720.0
+no lesion,baseline,,rl,2,0,9,720.0
+no lesion,baseline,,rl,3,0,11,720.0
+other escape DNs (8),output,"esc_left,esc_right",rl,1,0,9,720.0
+other escape DNs (8),output,"esc_left,esc_right",rl,2,0,9,720.0
+other escape DNs (8),output,"esc_left,esc_right",rl,3,0,11,720.0
+random 10 (draw 1),control10,random:10:1,rl,1,0,9,720.0
+random 10 (draw 1),control10,random:10:1,rl,2,0,9,720.0
+random 10 (draw 1),control10,random:10:1,rl,3,0,11,720.0
+random 10 (draw 2),control10,random:10:2,rl,1,0,9,720.0
+random 10 (draw 2),control10,random:10:2,rl,2,0,9,720.0
+random 10 (draw 2),control10,random:10:2,rl,3,0,11,720.0
+random 10 (draw 3),control10,random:10:3,rl,1,0,9,720.0
+random 10 (draw 3),control10,random:10:3,rl,2,0,9,720.0
+random 10 (draw 3),control10,random:10:3,rl,3,0,11,720.0
+random 10 (draw 4),control10,random:10:4,rl,1,0,9,720.0
+random 10 (draw 4),control10,random:10:4,rl,2,0,9,720.0
+random 10 (draw 4),control10,random:10:4,rl,3,0,11,720.0
+random 10 (draw 5),control10,random:10:5,rl,1,0,9,720.0
+random 10 (draw 5),control10,random:10:5,rl,2,0,9,720.0
+random 10 (draw 5),control10,random:10:5,rl,3,0,11,720.0
+random 162 (draw 1),control162,random:162:1,rl,1,0,9,720.0
+random 162 (draw 1),control162,random:162:1,rl,2,0,9,720.0
+random 162 (draw 1),control162,random:162:1,rl,3,0,11,720.0
+random 162 (draw 2),control162,random:162:2,rl,1,0,9,720.0
+random 162 (draw 2),control162,random:162:2,rl,2,0,9,720.0
+random 162 (draw 2),control162,random:162:2,rl,3,0,11,720.0
+random 162 (draw 3),control162,random:162:3,rl,1,0,9,720.0
+random 162 (draw 3),control162,random:162:3,rl,2,0,9,720.0
+random 162 (draw 3),control162,random:162:3,rl,3,0,11,720.0
+random 162 (draw 4),control162,random:162:4,rl,1,0,9,720.0
+random 162 (draw 4),control162,random:162:4,rl,2,0,9,720.0
+random 162 (draw 4),control162,random:162:4,rl,3,0,11,720.0
+random 162 (draw 5),control162,random:162:5,rl,1,0,9,720.0
+random 162 (draw 5),control162,random:162:5,rl,2,0,9,720.0
+random 162 (draw 5),control162,random:162:5,rl,3,0,11,720.0

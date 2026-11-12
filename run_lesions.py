@@ -25,8 +25,8 @@ CONDITIONS = [
     ("Giant Fiber (2)", "output", "gf_left,gf_right"),
     ("other escape DNs (8)", "output", "esc_left,esc_right"),
     ("all escape outputs (10)", "output", "gf_left,gf_right,esc_left,esc_right"),
-    ("LPLC2 only", "input", "LPLC2"),
-    ("LC4 only", "input", "LC4"),
+    ("LPLC2 neurons", "input", "LPLC2"),
+    ("LC4 neurons", "input", "LC4"),
     ("left-eye looming (162)", "input", "loom_left"),
 ] + [(f"random 10 (draw {k})", "control10", f"random:10:{k}") for k in range(1, 6)] \
   + [(f"random 162 (draw {k})", "control162", f"random:162:{k}") for k in range(1, 6)]
@@ -85,7 +85,7 @@ def summarise(rows):
                 if group.startswith("control"):
                     draws = [[r for r in rs if r["condition"] == c] for c in dict.fromkeys(r["condition"] for r in rs)]
                     per = [sum(r["collisions"] for r in d) for d in draws]
-                    km = np.mean([r["distance"] for d in draws for r in d]) / (SECONDS * len(SEEDS)) * 3.6
+                    km = np.mean([r["distance"] for d in draws for r in d]) / SECONDS * 3.6
                     print(f"{'random ' + group[7:] + ' (5 draws)':26s} {kind:6s} "
                           f"{np.mean(per):6.1f} ({min(per)}-{max(per)}) "
                           f"{100 * (1 - np.mean(per) / obs):6.0f}% {km:6.1f}")
@@ -98,8 +98,15 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--quick", action="store_true")
     ap.add_argument("--plot", action="store_true")
+    ap.add_argument("--summary", action="store_true", help="reprint the table from the saved CSV")
     ap.add_argument("--jobs", type=int, default=4)
     a = ap.parse_args()
+    if a.summary:
+        rows = list(csv.DictReader(open(OUT_CSV)))
+        for r in rows:
+            r["collisions"], r["obstacles"], r["distance"] = int(r["collisions"]), int(r["obstacles"]), float(r["distance"])
+        summarise(rows)
+        return
     if a.plot:
         from plot_lesions import plot
         plot(OUT_CSV, OUT_PNG)
