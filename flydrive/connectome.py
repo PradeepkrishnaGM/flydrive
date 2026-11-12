@@ -17,7 +17,7 @@ import scipy.sparse as sp
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 CACHE = DATA_DIR / "connectome_cache.npz"
-CACHE_VERSION = 2  # bump when the cache contents change
+CACHE_VERSION = 3  # bump when the cache contents change
 
 # Visual looming detectors (optic lobe -> central brain)
 LOOM_TYPES = ["LPLC2", "LC4"]
@@ -81,8 +81,19 @@ def build_cache():
     dn_names = (dn["cell_type"].fillna("DN?").astype(str) + "_"
                 + dn["side"].fillna("?").astype(str)).to_numpy()
 
+    # Cell type and side of every neuron (used to lesion neurons by type)
+    a = annot.assign(i=annot["root_id"].map(index_of)).dropna(subset=["i"])
+    ii = a["i"].astype(np.int64).to_numpy()
+    labels = {}
+    for col in ("cell_type", "hemibrain_type", "side"):
+        arr = np.full(n, "", dtype="U24")
+        arr[ii] = a[col].fillna("").astype(str).to_numpy()
+        labels[col] = arr
+
     np.savez_compressed(
         CACHE, version=CACHE_VERSION, n=n, indptr=W.indptr, indices=W.indices, data=W.data,
+        ct_cell_type=labels["cell_type"], ct_hemibrain_type=labels["hemibrain_type"],
+        ct_side=labels["side"],
         dn_idx=dn_idx, dn_names=dn_names.astype("U40"),
         **{f"g_{k}": v for k, v in groups.items()},
     )
@@ -109,3 +120,12 @@ def _cache_version():
 def dn_names():
     """Readable names ('DNp01_left', ...) for the neurons in groups['dn_all']."""
     return np.load(CACHE)["dn_names"]
+
+
+def neurons_of_type(types, side=None):
+    """Indices of every neuron whose cell type (or hemibrain type) is in `types`."""
+    z = np.load(CACHE)
+    mask = np.isin(z["ct_cell_type"], types) | np.isin(z["ct_hemibrain_type"], types)
+    if side is not None:
+        mask &= z["ct_side"] == side
+    return np.flatnonzero(mask).astype(np.int32)

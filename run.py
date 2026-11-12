@@ -64,6 +64,19 @@ def get_brain(args):
 
 
 def make_reflex(kind, args, world):
+    """Build a reflex. With --lesion, the brain is damaged only AFTER the reflex is built, so
+    any start-up calibration sees the intact wiring (a fly doesn't re-learn its anatomy)."""
+    if "b" in _brain:
+        _brain["b"].unlesion()
+    reflex = _make_reflex(kind, args, world)
+    if getattr(args, "lesion", None) and "b" in _brain:
+        from flydrive.lesion import resolve
+        b = _brain["b"]
+        b.lesion(resolve(args.lesion, b.groups, b.n))
+    return reflex
+
+
+def _make_reflex(kind, args, world):
     from flydrive import controller
     if kind == "none":
         return controller.NoReflex()
@@ -177,7 +190,7 @@ def probe(args):
                   f"{c['esc_left']:8d} {c['esc_right']:8d}")
 
 
-def main():
+def build_parser():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--reflex", choices=list(REFLEX_NAMES), default="fly")
     p.add_argument("--benchmark", type=float, metavar="SECONDS")
@@ -197,13 +210,20 @@ def main():
     p.add_argument("--no-launch", action="store_true",
                    help="don't start Godot; wait for you to press Play in the Godot editor")
     p.add_argument("--port", type=int, default=47111)
+    p.add_argument("--lesion", default="",
+                   help="silence neurons in the fly brain, e.g. gf_left,gf_right or LC4@left or "
+                        "random:10:1 (see flydrive/lesion.py)")
     p.add_argument("--rl-model", help="use this RL policy file instead of the default one")
     p.add_argument("--difficulty", choices=["normal", "hard"], default="normal",
                    help="hard: obstacles come faster, several at once, plus roadside clutter")
     p.add_argument("--seconds", type=float, default=600.0, help=argparse.SUPPRESS)
     p.add_argument("--frames", type=int, help=argparse.SUPPRESS)
     p.add_argument("--screenshot", help=argparse.SUPPRESS)
-    args = p.parse_args()
+    return p
+
+
+def main():
+    args = build_parser().parse_args()
 
     if args.renderer == "godot":
         args.eyes = "camera"

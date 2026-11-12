@@ -48,6 +48,16 @@ class FlyBrain:
         self.drive_idx = np.empty(0, dtype=np.int32)
         self.drive_rate = np.empty(0, dtype=np.float32)
         self.total_spikes = 0
+        self.lesioned = np.empty(0, dtype=np.int32)   # silenced neurons (see lesion())
+
+    def lesion(self, idx):
+        """Silence these neurons: they can never spike, so they send nothing downstream.
+
+        Unlike reset(), a lesion stays in place until unlesion() is called."""
+        self.lesioned = np.unique(np.asarray(idx, dtype=np.int32))
+
+    def unlesion(self):
+        self.lesioned = np.empty(0, dtype=np.int32)
 
     def set_drive(self, rates_by_group):
         """rates_by_group: {group_name: rate_Hz}. Stimulated neurons fire as Poisson."""
@@ -102,6 +112,9 @@ class FlyBrain:
         if self.drive_idx.size:
             fire = self.rng.random(self.drive_idx.size) < self.drive_rate * dt / 1000.0
             v[self.drive_idx[fire]] = self.V_TH + 1.0
+
+        if self.lesioned.size:
+            v[self.lesioned] = self.V_REST          # silenced, even if driven
 
         spiked = np.flatnonzero(v > self.V_TH).astype(np.int32)
         if spiked.size:
