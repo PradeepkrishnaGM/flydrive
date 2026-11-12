@@ -1,7 +1,7 @@
 """Interneuron screen: which single cells between the eyes and the escape neurons matter?
 
-    python run_screen.py              # the whole screen (~20 min) -> docs/screen_*.csv
-    python run_screen.py --plot       # draw docs/screen.png from the saved CSV
+    python experiments/run_screen.py              # the whole screen (~20 min) -> results/screen_*.csv
+    python experiments/run_screen.py --plot       # draw docs/screen.png from the saved CSV
 
 1. Drive each eye at 60 Hz for 300 ms; the 50 most active neurons that are neither looming
    inputs nor descending outputs are the candidates.
@@ -14,6 +14,10 @@
 4. Drive with the top 5 / top 10 silenced vs random sets of the same size drawn from the active
    candidates with below-median effect (3 draws), both reflexes, 3 layouts x 60 s.
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # project root: run.py, flydrive/
 import argparse
 import csv
 import multiprocessing as mp
@@ -21,8 +25,9 @@ from pathlib import Path
 
 import numpy as np
 
-DOCS = Path(__file__).parent / "docs"
-SINGLE_CSV, BEHAV_CSV, PNG = DOCS / "screen_results.csv", DOCS / "screen_behaviour.csv", DOCS / "screen.png"
+ROOT = Path(__file__).resolve().parent.parent
+DOCS, RESULTS = ROOT / "docs", ROOT / "results"
+SINGLE_CSV, BEHAV_CSV, PNG = RESULTS / "screen_results.csv", RESULTS / "screen_behaviour.csv", DOCS / "screen.png"
 N_CAND, EYES = 50, ("loom_left", "loom_right")
 SEEDS_PROBE = (1, 2, 3, 4, 5, 6)           # noise seeds for the screen itself
 SEEDS_CHECK = (7, 8, 9, 10, 11, 12)        # fresh seeds to confirm the cumulative lesions
@@ -195,6 +200,7 @@ def main():
         plot()
         return
     DOCS.mkdir(exist_ok=True)
+    RESULTS.mkdir(exist_ok=True)
     rows = screen()
     plot()
     if not a.screen_only:

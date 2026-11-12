@@ -4,8 +4,12 @@ Drives with no reflex (so obstacles are approached the whole way) and, every ste
 the true looming from the world's geometry and both pixel estimates from the same frame.
 Prints, per distance band: correlation with the truth and the share of frames noticed.
 
-    python eval_looming.py --seeds 1,2,3 --seconds 60
+    python experiments/eval_looming.py --seeds 1,2,3 --seconds 60
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # project root: run.py, flydrive/
 import argparse
 import math
 

@@ -1,13 +1,17 @@
 """Make the README GIF, a side-by-side video and social images, all headless.
 
-    python make_showcase.py find                  # find a layout where the lesioned car crashes
-    python make_showcase.py build --seed 3 --t 12.4   # record, then build everything
+    python experiments/make_showcase.py find                  # find a layout where the lesioned car crashes
+    python experiments/make_showcase.py build --seed 3 --t 12.4   # record, then build everything
 
 Outputs: docs/demo.gif, docs/social-preview.png (GitHub, 1280x640), docs/linkedin-card.png
 (1200x627), docs/linkedin-square.png (1080x1080), and showcase/lesion-vs-intact.mp4 (kept out
 of git). The video compares the hand-tuned fly brain intact against the same brain with its 10
 escape neurons silenced, driving the same layout.
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # project root: run.py, flydrive/
 import argparse
 import os
 import shutil
@@ -19,7 +23,7 @@ os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parent.parent
 DOCS, SHOW = ROOT / "docs", ROOT / "showcase"
 WORK = Path(os.environ.get("SHOWCASE_WORK", "/tmp/flydrive_showcase"))
 LESION = "gf_left,gf_right,esc_left,esc_right"

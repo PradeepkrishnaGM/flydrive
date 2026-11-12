@@ -65,3 +65,11 @@ Order 5 -> 6 -> 7; milestone 6's long runs go in the background while 7 is built
   33.1/32.6 km/h). Conclusion: no safety gain; reported as such in the README.
 - Camera-trained models (3-31 KB each) are tracked in git; recorded drives (146 MB) stay in the
   git-ignored `models/rl_data/`.
+
+## Repo tidy-up (2026-11-12)
+- Experiment scripts moved to `experiments/` (each adds the project root to `sys.path`, so they
+  run from any directory); result CSVs moved from `docs/` to `results/`; `docs/` holds only
+  README media. Entry points (`run.py`, `train*.py`, `download_data.py`, `setup_fedora.sh`)
+  stay at the root. Paths in the entries above refer to the old layout.
+- README rewritten around the results (same numbers); stale notes fixed (Godot now tested with
+  4.7.2, camera retraining reported as done).

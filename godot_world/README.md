@@ -58,7 +58,8 @@ follow.
   picture.
 - If the image ever comes back upside down (renderer differences), Python detects it
   from where the sky is and flips it.
-- **Tested how far:** the GDScript is syntax-checked and the protocol was tested against
-  a stand-in client, but this project has not been run inside Godot itself, because Godot
-  could not be installed in the machine that wrote it. If something misbehaves on first
-  run, the likely suspects are the viewport read-back and the sky/lighting colours.
+- **Tested how far:** run with Godot 4.7.2 on Fedora 44, headless under Xvfb: Godot starts,
+  connects, renders the camera view, and the car drives on those pixels (a short benchmark
+  with the RL fly brain had no collisions). The rendered pictures were not inspected by eye.
+  If something misbehaves on another setup, the likely suspects are the viewport read-back
+  and the sky/lighting colours.

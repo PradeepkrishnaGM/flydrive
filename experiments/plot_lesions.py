@@ -1,4 +1,8 @@
-"""Bar chart of the lesion experiment (docs/lesion_results.csv -> docs/lesion.png)."""
+"""Bar chart of the lesion experiment (results/lesion_results.csv -> docs/lesion.png)."""
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # project root: run.py, flydrive/
 import csv
 from collections import defaultdict
 

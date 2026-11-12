@@ -1,14 +1,18 @@
 """Lesion experiment: silence parts of the fly brain and see what the car loses.
 
-    python run_lesions.py --quick            # baseline + Giant Fiber, 1 layout (timing check)
-    python run_lesions.py                    # the full experiment -> docs/lesion_results.csv
-    python run_lesions.py --plot             # draw docs/lesion.png from the saved CSV
+    python experiments/run_lesions.py --quick            # baseline + Giant Fiber, 1 layout (timing check)
+    python experiments/run_lesions.py                    # the full experiment -> results/lesion_results.csv
+    python experiments/run_lesions.py --plot             # draw docs/lesion.png from the saved CSV
 
 Every condition drives the same 3 obstacle layouts (60 s each, world geometry as eyes, normal
 world) with two reflexes: the hand-tuned fly brain ('fly', reads the escape neurons) and the
 reinforcement-learning fly brain ('rl', reads all 1,299 descending neurons). The reflex is
 built on the intact brain (so it can't "re-learn" its wiring), then the lesion is applied.
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # project root: run.py, flydrive/
 import argparse
 import csv
 import multiprocessing as mp
@@ -16,8 +20,9 @@ from pathlib import Path
 
 import numpy as np
 
-OUT_CSV = Path(__file__).parent / "docs" / "lesion_results.csv"
-OUT_PNG = Path(__file__).parent / "docs" / "lesion.png"
+ROOT = Path(__file__).resolve().parent.parent
+OUT_CSV = ROOT / "results" / "lesion_results.csv"
+OUT_PNG = ROOT / "docs" / "lesion.png"
 
 # (label, group, lesion spec).  Sizes: GF 2, escape DNs 8, all outputs 10, left eye 162 neurons.
 CONDITIONS = [
