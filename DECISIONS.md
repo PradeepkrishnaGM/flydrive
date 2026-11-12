@@ -56,3 +56,12 @@ Order 5 -> 6 -> 7; milestone 6's long runs go in the background while 7 is built
   notes that the RL car doesn't, so it doesn't overclaim.
 - GitHub social preview (`docs/social-preview.png`, 1280x640) must be uploaded by hand
   (repo Settings -> Social preview); there is no API for it.
+
+## Milestone 6 result (2026-11-12)
+- Camera-trained (flow) RL policies for normal and hard worlds, fly + eyes-only: 8 drives each,
+  recording ~21 min, whole training incl. threshold tuning ~32 min (both worlds in parallel).
+- Camera benchmark (flow looming, seeds 1-3, 60 s): normal 0/29 for all; hard fly 19/94 (geometry-
+  trained: 14/94), eyes 19/94 (18/94). Camera-trained cars are ~25% faster (42.4/39.7 vs
+  33.1/32.6 km/h). Conclusion: no safety gain; reported as such in the README.
+- Camera-trained models (3-31 KB each) are tracked in git; recorded drives (146 MB) stay in the
+  git-ignored `models/rl_data/`.

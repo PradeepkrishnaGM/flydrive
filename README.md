@@ -223,6 +223,28 @@ Flow is on par in the normal world and a little behind in the hard one. The poli
 trained on geometric looming, so neither pixel method is a perfect match, and with one run of
 three layouts the hard-world gap is within noise.
 
+### Retraining on camera pixels
+
+The policies above were trained on exact-geometry looming. Does practising with the car's own
+eyes help? `python train_rl.py --camera --looming flow` records practice drives through the
+camera with optic-flow looming (8 drives of 120 s per world, about 25 minutes on 6 cores) and
+saves `models/rl_*_cam_flow.npz`, leaving the geometry-trained policies untouched. Load them
+with `python run.py --eyes camera --looming flow --rl-cam`. Same benchmark as above (flow
+looming, 3 layouts x 60 s):
+
+| World | Reflex | Trained on geometry | Trained on camera pixels |
+|---|---|---|---|
+| Normal (29 obstacles) | fly brain, RL | 0 collisions, 43.2 km/h | 0, 43.2 km/h |
+| Normal (29 obstacles) | eyes only, RL | 0, 43.2 km/h | 0, 43.2 km/h |
+| Hard (94 obstacles) | fly brain, RL | 14 (85% avoided), 33.1 km/h | 19 (80%), 42.4 km/h |
+| Hard (94 obstacles) | eyes only, RL | 18 (81%), 32.6 km/h | 19 (80%), 39.7 km/h |
+
+**It did not help.** Collisions are no better (a bit worse for the fly brain), so the flow gap in
+the hard world is not caused by training on geometry. The camera-trained policies do drive about
+25% faster, because they brake and swerve less: a different speed/safety trade-off, not a safer
+car. One training run per setting and one benchmark of 94 obstacles, so differences of a few
+collisions are within noise.
+
 ## The Godot 3D world
 
 `godot_world/` is a Godot 4 project that acts as the car's eyes: Python sends it the car and
@@ -592,8 +614,8 @@ models/           trained readouts and RL policies (readout_*.npz, rl_*.npz)
 - **More senses:** feed wind or touch neurons for side collisions, or light-sensitive neurons
   for tunnels.
 - **Compare flies:** swap in Google's male fly connectome (MaleCNS) and see whether its reflexes differ.
-- **Retrain through the camera:** `train_rl.py --camera` practises with pixel looming instead
-  of exact geometry, so the policy learns around the camera's blind spots.
+- **More practice for the camera policy:** camera-trained policies (see above) used 8 drives and
+  did not beat the geometry-trained ones; more drives, or a speed-aware reward, might.
 - **Mask-free optic flow:** `--looming flow` still uses the pixel classifier to pick regions.
   Subtracting the expected ground flow (flat road, known camera height) would remove that.
 
