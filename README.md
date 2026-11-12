@@ -207,6 +207,20 @@ is approached all the way):
 
 So optic flow is about as good as blob growth: slightly noisier up close, equal far away.
 
+Driving results with the RL policies (`--eyes camera --benchmark 60 --seeds 1,2,3`, collisions
+out of all obstacles over the 3 layouts):
+
+| World | Reflex | Blob growth | Optic flow |
+|---|---|---|---|
+| Normal (29 obstacles) | fly brain, RL | 0 | 0 |
+| Normal (29 obstacles) | eyes only, RL | 0 | 0 |
+| Hard (94 obstacles) | fly brain, RL | 11 (88% avoided) | 14 (85%) |
+| Hard (94 obstacles) | eyes only, RL | 17 (82%) | 18 (81%) |
+
+Flow is on par in the normal world and a little behind in the hard one. The policies were
+trained on geometric looming, so neither pixel method is a perfect match, and with one run of
+three layouts the hard-world gap is within noise.
+
 ## The Godot 3D world
 
 `godot_world/` is a Godot 4 project that acts as the car's eyes: Python sends it the car and
