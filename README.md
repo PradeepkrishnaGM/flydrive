@@ -517,6 +517,37 @@ collisions against 0-6) should be trusted. The reflexes and the learned policy a
 the intact brain, so this measures what the *current* wiring relies on, not what a fly would
 re-learn after damage. Results are in `docs/lesion_results.csv`.
 
+## Interneuron screen: do single cells matter?
+
+The lesion experiment silenced whole cell types. `python run_screen.py` goes one level down: it
+finds the 50 most active neurons between the eyes and the escape neurons (the looming inputs and
+descending outputs are excluded), silences each alone, and measures how many escape-output
+spikes (Giant Fiber + 8 escape DNs) and descending-population spikes (all 1,299) are lost.
+
+![Single interneurons](docs/screen.png)
+
+| Silenced | Escape outputs lose | Descending population loses |
+|---|---|---|
+| best single neuron (PVLP069_left) | 3.6% | 6.2% |
+| top 5 together | 14% | 24% |
+| top 10 together | 25% | 32% |
+| top 20 together | 35% | 39% |
+
+(Cumulative rows are re-measured on fresh noise seeds, so lucky rankings don't inflate them.
+Baseline replicates differ by about ±1.5%, the grey band in the chart.)
+
+- **No single interneuron is a bottleneck.** The strongest removes under 4% of the escape
+  output, barely above noise. The signal is spread over many cells (PVLP069, PVLP151, PVLP122b,
+  AVLP016, AVLP396 are the strongest cell types), and their effects roughly add up.
+- **Losing a quarter of the brain's response doesn't hurt the car.** With the top 5 or top 10
+  silenced (which removes 25-32% of the escape spikes), the hand-tuned car crashed 4/29 times and
+  the RL car 1/29, against 6/29 and 0/29 intact, and 7-8/29 and 0-1/29 for random sets of the same
+  size drawn from the other active neurons (3 draws). The readouts are saturating: the car needs
+  *some* escape signal, not all of it.
+- So the earlier lesion result still stands: the car breaks when a whole input cell type or the
+  8 escape DNs go, not when a handful of interneurons do. Results: `docs/screen_results.csv` and
+  `docs/screen_behaviour.csv`.
+
 ## Performance
 
 The simulation is locked to simulated time, so results don't depend on your CPU. On a slow CPU
@@ -561,8 +592,6 @@ models/           trained readouts and RL policies (readout_*.npz, rl_*.npz)
 - **Compare flies:** swap in Google's male fly connectome (MaleCNS) and see whether its reflexes differ.
 - **Retrain through the camera:** `train_rl.py --camera` practises with pixel looming instead
   of exact geometry, so the policy learns around the camera's blind spots.
-- **Find the important interneurons:** rank the neurons between the eyes and the escape neurons
-  by activity, lesion the top ones, and see which single cells the reflex depends on.
 - **Mask-free optic flow:** `--looming flow` still uses the pixel classifier to pick regions.
   Subtracting the expected ground flow (flat road, known camera height) would remove that.
 

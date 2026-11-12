@@ -90,7 +90,8 @@ def _make_reflex(kind, args, world):
     if kind in ("rl", "rl-eyes"):
         from flydrive import rl
         model_kind = "fly" if kind == "rl" else "eyes"
-        path = Path(args.rl_model) if args.rl_model else rl.model_path(model_kind, args.difficulty)
+        path = Path(args.rl_model) if args.rl_model else rl.model_path(
+            model_kind, args.difficulty, args.looming if args.rl_cam else None)
         if not path.exists():
             raise SystemExit(f"No RL model at {path}. Run:  python train_rl.py "
                              f"--kind {model_kind} --difficulty {args.difficulty}")
@@ -213,6 +214,9 @@ def build_parser():
     p.add_argument("--lesion", default="",
                    help="silence neurons in the fly brain, e.g. gf_left,gf_right or LC4@left or "
                         "random:10:1 (see flydrive/lesion.py)")
+    p.add_argument("--rl-cam", action="store_true",
+                   help="use the RL policy trained on camera pixels with the --looming method "
+                        "(train_rl.py --camera --looming ...)")
     p.add_argument("--rl-model", help="use this RL policy file instead of the default one")
     p.add_argument("--difficulty", choices=["normal", "hard"], default="normal",
                    help="hard: obstacles come faster, several at once, plus roadside clutter")

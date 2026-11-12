@@ -29,7 +29,7 @@ REWARD = (rl.COLLISION_PENALTY, rl.ESCAPE_COST, rl.DIST_COST, rl.HORIZON_S)
 
 def drive_file(i, brain, difficulty="normal", camera=False):
     tag = "" if difficulty == "normal" else f"{difficulty}_"
-    return rl.RL_DATA_DIR / f"{tag}drive_{i:02d}{'' if brain else '_nobrain'}{'_cam' if camera else ''}.pkl"
+    return rl.RL_DATA_DIR / f"{tag}drive_{i:02d}{'' if brain else '_nobrain'}{f'_cam_{camera}' if camera else ''}.pkl"
 
 
 def _worker(job):
@@ -106,6 +106,7 @@ def tune_threshold(kind, pol, args, seconds=60.0):
     uses a practice layout (seed 2000+), never a benchmark one."""
     from flydrive.controller import LaneFollower, drive_command
     from flydrive.readout import EyeFeatures, FlyFeatures
+    camera = args.camera
     from flydrive.world import World
     brain = None
     if kind == "fly":
@@ -123,9 +124,13 @@ def tune_threshold(kind, pol, args, seconds=60.0):
             feats = EyeFeatures()
         feats.reset()
         reflex = rl.RLReflex(feats, pol, kind)
-        lane = LaneFollower(world)
+        lane, senses = LaneFollower(world), None
+        if camera:                  # tune with the same eyes the policy will use
+            from flydrive.vision import CameraSenses, VisionLane
+            senses = CameraSenses(world, looming=camera)
+            lane = VisionLane(senses)
         for _ in range(int(seconds / rl.DT)):
-            steer, accel = drive_command(lane, reflex, world, rl.DT)
+            steer, accel = drive_command(lane, reflex, world, rl.DT, senses)
             world.step(steer, accel, rl.DT)
         st = world.stats
         results.append((st["collisions"], -st["distance"], thr, st["obstacles"]))
@@ -166,7 +171,7 @@ def train(kind, datas, args):
           f"escapes launched {ev['escapes']}")
     if not args.no_tune:
         tune_threshold(kind, pol, args)
-    path = rl.model_path(kind, args.difficulty)
+    path = rl.model_path(kind, args.difficulty, args.camera or None)
     if args.components:
         path = path.with_name(path.stem + f"_pca{args.components}.npz")
     pol.save(path, kind, meta={"loom_gain": args.loom_gain})
@@ -197,7 +202,10 @@ def main():
     p.add_argument("--difficulty", choices=["normal", "hard"], default="normal",
                    help="hard: obstacles come faster, several at once, plus roadside clutter")
     p.add_argument("--camera", action="store_true",
-                   help="practise with the car's camera instead of exact geometry (slower)")
+                   help="practise with the car's camera instead of exact geometry (slower); "
+                        "saved as rl_*_cam_<looming>.npz, the geometry policies are untouched")
+    p.add_argument("--looming", choices=["blob", "flow"], default="blob",
+                   help="with --camera: how the camera measures looming")
     p.add_argument("--thresholds", type=float, nargs="+", default=[0.05, 0.1, 0.2, 0.4, 0.6],
                    help="trigger thresholds to try when tuning by driving")
     p.add_argument("--components", type=int,
@@ -206,6 +214,7 @@ def main():
                    help="skip the closed-loop threshold tuning (use the offline estimate)")
     p.add_argument("--record-only", action="store_true", help=argparse.SUPPRESS)
     args = p.parse_args()
+    args.camera = args.looming if args.camera else False   # False, 'blob' or 'flow'
 
     use_brain = args.kind != "eyes" or all(
         drive_file(i, True, args.difficulty, args.camera).exists() for i in range(args.drives))

@@ -56,9 +56,11 @@ ACTION_NAMES = ["left", "left+brake", "right", "right+brake"]
 RL_DATA_DIR = MODEL_DIR / "rl_data"
 
 
-def model_path(kind, difficulty="normal"):
+def model_path(kind, difficulty="normal", cam=None):
+    """Where a policy lives. cam='blob'/'flow': policy trained on camera pixels with that looming
+    method (kept apart so it never overwrites the geometry-trained one)."""
     tag = "" if difficulty == "normal" else f"{difficulty}_"
-    return MODEL_DIR / f"rl_{tag}{kind}.npz"
+    return MODEL_DIR / f"rl_{tag}{kind}{f'_cam_{cam}' if cam else ''}.npz"
 
 
 # --------------------------------------------------------------------------- #
@@ -166,7 +168,7 @@ def record_drive(seed, seconds, use_brain=True, brain_seed=0, loom_gain=600.0, b
     senses = None
     if camera:                       # practise with the car's own eyes instead of geometry
         from .vision import CameraSenses, VisionLane
-        senses = CameraSenses(world)
+        senses = CameraSenses(world, looming=camera if camera in ("blob", "flow") else "blob")
         lane = VisionLane(senses)
     rng = np.random.default_rng(seed + 7919)
 
