@@ -50,7 +50,7 @@ def make_senses(world, args):
     if args.eyes != "camera":
         return LaneFollower(world), None
     from flydrive.vision import CameraSenses, VisionLane
-    senses = CameraSenses(world, get_renderer(args))
+    senses = CameraSenses(world, get_renderer(args), looming=args.looming)
     return VisionLane(senses), senses
 
 
@@ -189,6 +189,8 @@ def main():
     p.add_argument("--loom-gain", type=float, default=600.0)
     p.add_argument("--eyes", choices=["geometry", "camera"], default="geometry",
                    help="geometry: looming computed from the world (default); camera: from pixels")
+    p.add_argument("--looming", choices=["blob", "flow"], default="blob",
+                   help="camera mode: looming from blob growth (default) or optic-flow expansion")
     p.add_argument("--renderer", choices=["numpy", "godot"], default="numpy",
                    help="who draws the camera image in --eyes camera mode")
     p.add_argument("--godot", help="path to the Godot 4 executable (default: look for 'godot')")

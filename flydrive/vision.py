@@ -31,14 +31,56 @@ TTC_MAX = 2.5                           # like LPLC2: only react to things arriv
 MIN_BLOB = 4                            # pixels
 HISTORY = 5                             # frames used to measure growth (100 ms)
 
+# --- optic-flow looming (--looming flow): all tunable numbers live here --------------------
+FLOW_SIGMA = 1.0                        # image blur (pixels) before taking gradients
+FLOW_MARGIN = 3                         # pixels added around a blob, so its moving edges count
+FLOW_SMOOTH = 4                         # per-blob expansion estimates averaged (frames)
+FLOW_MIN_GRAD = 1e-3                    # ignore a region whose brightness gradients are weaker
+FLOW_RIDGE = 1e-3                       # tiny regulariser so the 6x6 solve is always stable
+
 
 def _chroma(f):
     V = f.mean(-1)
     return (f - V[..., None]) / (V[..., None] + 0.08), V
 
 
+def expansion_rate(g0, g1, mask, dt, sigma=FLOW_SIGMA):
+    """Expansion rate e = d ln(size)/dt = 1/time-to-contact of what lies inside `mask`.
+
+    Optic flow, the way LPLC2 sees it: how the brightness pattern moves between two frames.
+    Inside the region the flow is modelled as affine, u = a0 + a1 x + a2 y and
+    v = b0 + b1 x + b2 y, and fitted by least squares to the brightness-constancy
+    equation Ix u + Iy v + It = 0 (Lucas-Kanade with one window per object). An object that
+    scales about its centre has divergence a1 + b2 = 2e. Pure sideways motion or a static
+    scene give 0. Returns None when the region has too little texture to say anything.
+    """
+    if dt <= 0:
+        return None
+    g0 = ndimage.gaussian_filter(g0.astype(np.float32), sigma)
+    g1 = ndimage.gaussian_filter(g1.astype(np.float32), sigma)
+    Iy, Ix = np.gradient(0.5 * (g0 + g1))
+    It = g1 - g0
+    ys, xs = np.nonzero(mask)
+    if len(xs) < 6:
+        return None
+    ix, iy, it = Ix[ys, xs], Iy[ys, xs], It[ys, xs]
+    if float(np.sqrt((ix ** 2 + iy ** 2).mean())) < FLOW_MIN_GRAD:
+        return None
+    x = xs - xs.mean()
+    y = ys - ys.mean()
+    A = np.stack([ix, ix * x, ix * y, iy, iy * x, iy * y], 1).astype(np.float64)
+    AtA = A.T @ A + FLOW_RIDGE * np.eye(6) * max(float(np.trace(A.T @ A)) / 6, 1e-9)
+    a = np.linalg.solve(AtA, -(A.T @ it.astype(np.float64)))
+    return float(a[1] + a[5]) / 2.0 / dt
+
+
 class Vision:
-    def __init__(self, w=IMG_W, h=IMG_H):
+    def __init__(self, w=IMG_W, h=IMG_H, looming_mode="blob"):
+        if looming_mode not in ("blob", "flow"):
+            raise ValueError("looming_mode must be 'blob' or 'flow'")
+        self.mode = looming_mode
+        self.prev_gray = None               # previous frame and time, for optic flow
+        self.prev_t = None
         self.w, self.h = w, h
         self.proto = None
         self.flip = False
@@ -137,7 +179,15 @@ class Vision:
         return self.lane_L, self.lane_D
 
     # ---------------- 3. what is looming? ----------------
-    def looming(self, lab, t):
+    def _gray(self, img):
+        return (img[::-1] if self.flip else img).astype(np.float32).mean(-1) / 255
+
+    def looming(self, lab, t, img=None):
+        gray = None
+        if self.mode == "flow":
+            if img is None:
+                raise ValueError("flow looming needs the camera image")
+            gray = self._gray(img)
         mask = lab == OBSTACLE
         comps, n = ndimage.label(mask, structure=np.ones((3, 3)))
         found = []
@@ -153,11 +203,11 @@ class Vision:
                 ul, ur = cu - width / 2, cu + width / 2
                 theta = math.atan((ur - self.w / 2) / FOCAL) - math.atan((ul - self.w / 2) / FOCAL)
                 bearing = -math.atan((cu - self.w / 2) / FOCAL)  # left positive
-                found.append((cu, (sl[0].start + sl[0].stop) / 2, theta, bearing, sl, area))
+                found.append((cu, (sl[0].start + sl[0].stop) / 2, theta, bearing, sl, area, i + 1))
 
         # follow blobs from frame to frame (nearest match)
         unmatched = set(self.tracks)
-        for cu, cv, theta, bearing, sl, area in found:
+        for cu, cv, theta, bearing, sl, area, label in found:
             best, bd = None, 30.0
             for tid in unmatched:
                 tr = self.tracks[tid]
@@ -174,6 +224,12 @@ class Vision:
             tr.update(u=cu, v=cv, bearing=bearing, sl=sl, missing=0)
             tr["theta"] = theta
             tr["hist"] = (tr["hist"] + [(t, 0.5 * math.log(area))])[-HISTORY:]
+            if gray is not None and self.prev_gray is not None:
+                region = ndimage.binary_dilation(comps == label,
+                                                 iterations=FLOW_MARGIN)
+                e_now = expansion_rate(self.prev_gray, gray, region, t - self.prev_t)
+                if e_now is not None:
+                    tr["e_hist"] = (tr.get("e_hist", []) + [e_now])[-FLOW_SMOOTH:]
         for tid in unmatched:
             self.tracks[tid]["missing"] = self.tracks[tid].get("missing", 0) + 1
             if self.tracks[tid]["missing"] > 3:
@@ -186,7 +242,17 @@ class Vision:
                 continue
             h = tr["hist"]
             loom = False
-            if len(h) >= 3:
+            if self.mode == "flow":
+                eh = tr.get("e_hist", [])
+                if len(eh) >= 2:
+                    e = float(np.mean(eh))                   # expansion from optic flow
+                    if e > 1.0 / TTC_MAX:
+                        rate = tr["theta"] * e
+                        w_left = 0.5 + 0.5 * math.tanh(tr["bearing"] / 0.08)
+                        left += rate * w_left
+                        right += rate * (1 - w_left)
+                        loom = True
+            elif len(h) >= 3:
                 # relative growth rate of the blob's size, from its area (many pixels, so
                 # much less jumpy than its width): e = d ln(size)/dt = 1 / time-to-contact
                 ts = np.array([p[0] for p in h])
@@ -200,16 +266,18 @@ class Vision:
                     loom = True
             sl = tr["sl"]
             self.blobs.append((sl[1].start, sl[0].start, sl[1].stop, sl[0].stop, loom))
+        if gray is not None:
+            self.prev_gray, self.prev_t = gray, t
         return left, right
 
 
 class CameraSenses:
     """The car's only senses in camera mode: one camera (plus its own speedometer)."""
 
-    def __init__(self, world, renderer=None):
+    def __init__(self, world, renderer=None, looming="blob"):
         self.world = world
         self.renderer = renderer or NumpyRenderer()
-        self.vision = Vision()
+        self.vision = Vision(looming_mode=looming)
         self.frame = self.labels = None
         self.hud = ""
 
@@ -217,7 +285,7 @@ class CameraSenses:
         self.frame = self.renderer.render(self.world, hud=self.hud)
         self.labels = self.vision.classify(self.frame)
         self.vision.lane(self.labels)
-        return self.vision.looming(self.labels, self.world.t)
+        return self.vision.looming(self.labels, self.world.t, self.frame)
 
 
 class VisionLane:

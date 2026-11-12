@@ -179,6 +179,27 @@ Press `V` in the window to see the classified image instead of the raw one.
 Far-away obstacles are only a few pixels wide, so looming is noisy there, which is exactly the
 limitation a real camera has.
 
+### Looming from optic flow (`--looming flow`)
+
+The default measures how fast a blob's area grows. With `--looming flow` the car instead
+measures **optic flow**, the way LPLC2 neurons do: how the image's brightness pattern moves
+between two frames. Inside each tracked object's region the flow is fitted as an affine field
+(Lucas-Kanade, one window per object); its divergence is twice the expansion rate, i.e. 2 / time
+to contact. Sideways motion and static scenes give zero. The pixel classifier still decides
+*where* to look, then flow decides *how fast it is growing*. The output has the same units as
+the blob method, so the trained models work unchanged. Its tunable numbers are at the top of
+`flydrive/vision.py` (`FLOW_*`).
+
+Measured with `python eval_looming.py --seeds 1,2,3 --seconds 60` (no reflex, so every obstacle
+is approached all the way):
+
+| Obstacle distance | Blob growth: correlation / noticed | Optic flow: correlation / noticed |
+|---|---|---|
+| 6-12 m | 0.94 / 98% | 0.90 / 97% |
+| 12-40 m | 0.53 / 50% | 0.52 / 52% |
+
+So optic flow is about as good as blob growth: slightly noisier up close, equal far away.
+
 ## The Godot 3D world
 
 `godot_world/` is a Godot 4 project that acts as the car's eyes: Python sends it the car and
@@ -463,8 +484,8 @@ models/           trained readouts and RL policies (readout_*.npz, rl_*.npz)
 - **Compare flies:** swap in Google's male fly connectome (MaleCNS) and see whether its reflexes differ.
 - **Retrain through the camera:** `train_rl.py --camera` practises with pixel looming instead
   of exact geometry, so the policy learns around the camera's blind spots.
-- **A real optic-flow front end:** measure expansion from motion between frames, the way
-  LPLC2 actually does, instead of tracking blob size.
+- **Mask-free optic flow:** `--looming flow` still uses the pixel classifier to pick regions.
+  Subtracting the expected ground flow (flat road, known camera height) would remove that.
 
 ## Honest limitations
 
