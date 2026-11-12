@@ -524,3 +524,7 @@ it on a real vehicle.
   sensorimotor processing*, Nature ([github.com/philshiu/Drosophila_brain_model](https://github.com/philshiu/Drosophila_brain_model)).
 
 Please cite these papers if you share results.
+
+The code is released under the MIT license (see `LICENSE`). The connectome data is not
+included; `download_data.py` fetches it from the FlyWire papers' public repositories, under
+their own terms.
